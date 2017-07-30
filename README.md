@@ -1,0 +1,1 @@
+# azure-translate-example
