@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.98.0/css/materialize.min.css">
+        <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+        <link rel="stylesheet" href="css/site.css" />
+         <title>Microsoft Text Translation Example</title>
+    </head>
+<body ng-app="translatorApp" ng-controller="mainCtrl">
+    <div class="container" ng-cloak>
+        <div class="row">
+            <div class="input-field col m9 s12">
+                <input placeholder="Enter string to translate" id="first_name" type="text" ng-change="textChanged()" ng-model="sourceText" ng-disabled="queryRunning" ng-keyup="$event.keyCode == 13 ? translate(): null">
+            </div>
+            <div class="input-field col m3 s12">
+                <select ng-model="language" ng-options="obj.value as obj.name for obj in languages" material-select watch ng-disabled="queryRunning">
+                </select>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col s12">
+                 <button class="btn waves-effect waves-light blue darken-3 col s12" ng-click="translate()" ng-hide="hideButton" name="action" ng-disabled="queryRunning">{{translateBtnText}}</button>
+            </div>
+        </div>
+        <div class="row" ng-hide="hideTranslationResult">
+            <div class="col s12">
+                <div ng-class="cardClass">
+                        <div class="card-content">
+                            <p ng-style="resultStyle">{{resultText}}</p>
+                        </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!--SCRIPTS-->
+    <script type="text/javascript" src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.8/angular.min.js"></script>
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.8/angular-animate.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.98.0/js/materialize.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/angular-materialize/0.2.2/angular-materialize.min.js"></script>
+    <script type="text/javascript" src="js/app.js"></script>
+</body>
+</html>
