@@ -12,12 +12,16 @@
 <body ng-app="translatorApp" ng-controller="mainCtrl">
     <div class="container" ng-cloak>
         <div class="row">
-            <div class="input-field col m9 s12">
-                <input placeholder="Enter string to translate" id="first_name" type="text" ng-change="textChanged()" ng-model="sourceText" ng-disabled="queryRunning" ng-keyup="$event.keyCode == 13 ? translate(): null">
-            </div>
             <div class="input-field col m3 s12">
                 <select ng-model="language" ng-options="obj.value as obj.name for obj in languages" material-select watch ng-disabled="queryRunning">
                 </select>
+                <label>Source Language</label>
+            </div>
+        </div>
+        <div class="row">
+            <div class="input-field col m12 s12">
+                <textarea placeholder="Enter string to translate" id="first_name" class="materialize-textarea" ng-change="textChanged()" ng-model="sourceText" ng-disabled="queryRunning" style="max-height:150px;overflow-y: scroll;"></textarea>
+                <!-- <input placeholder="Enter string to translate" id="first_name" type="text" ng-change="textChanged()" ng-model="sourceText" ng-disabled="queryRunning" ng-keyup="$event.keyCode == 13 ? translate(): null"> -->
             </div>
         </div>
         <div class="row">
@@ -29,7 +33,7 @@
             <div class="col s12">
                 <div ng-class="cardClass">
                         <div class="card-content">
-                            <p ng-style="resultStyle">{{resultText}}</p>
+                            <p ng-bind-html="resultText | newlines"></p>
                         </div>
                 </div>
             </div>
@@ -40,6 +44,7 @@
     <script type="text/javascript" src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
     <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.8/angular.min.js"></script>
     <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.8/angular-animate.min.js"></script>
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.8/angular-sanitize.js"></script>
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.98.0/js/materialize.min.js"></script>
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/angular-materialize/0.2.2/angular-materialize.min.js"></script>
     <script type="text/javascript" src="js/app.js"></script>

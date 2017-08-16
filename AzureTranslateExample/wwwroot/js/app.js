@@ -1,6 +1,12 @@
 (function () {
     'use strict';
-angular.module('translatorApp', ['ui.materialize','ngAnimate'])
+angular.module('translatorApp', ['ui.materialize','ngAnimate','ngSanitize'])
+.filter('newlines', function(){
+  return function(text){
+     if(text == undefined) { return ''; }
+     return text.replace(/\n/g, '<br/>');
+  }
+})
     .controller('mainCtrl', ["$scope","$http","$location", function ($scope,$http,$location) {
       var apiURI = $location.protocol() + "://" + $location.host() + ":" + $location.port() + "/api/translation";
       
@@ -307,7 +313,7 @@ angular.module('translatorApp', ['ui.materialize','ngAnimate'])
       $scope.translate = function(){
           $scope.queryRunning = true;
           $scope.translateBtnText = "Translating..."
-          $http.post(apiURI, { "FromLanguageISOCode":"en", "ToLanguageISOCode":$scope.language, "Text": $scope.sourceText })
+          $http.post(apiURI, { "FromLanguageISOCode":"en", "ToLanguageISOCode":["es","en"], "Text": $scope.sourceText })
           .then(
               function(result){
                 resetUI(true,result);

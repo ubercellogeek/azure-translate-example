@@ -2,6 +2,9 @@ using AzureTranslateExample.Interfaces;
 using AzureTranslateExample.Models;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
+using System.Collections.Generic;
+using System.Net.Http;
+using System.Linq;
 
 namespace AzureTranslateExample.Controllers
 {
@@ -15,11 +18,30 @@ namespace AzureTranslateExample.Controllers
             _service = service;
         }
 
+        [HttpGet]
+        [Route("languages")]
+        public async Task<IActionResult> GetSupportedLanguageCodes()
+        {
+            return Ok(await _service.GetSupportedLanguageCodes());
+        }
+
         [HttpPost]
         public async Task<IActionResult> Translate([FromBody] TranslationRequest request)
         {
-            TranslationResponse translationResponse = await _service.Translate(request);
-            return Ok(translationResponse);
+            if(!ModelState.IsValid)
+            {
+                return StatusCode(422);
+            }
+            
+            TranslateArrayRequest arrayRequest = new TranslateArrayRequest();
+            arrayRequest.From = request.FromLanguageISOCode;
+            arrayRequest.To = request.ToLanguageISOCode.First();
+            List<string> texts = request.Text.Split("\n")?.ToList();
+
+            arrayRequest.Texts = texts.ToArray();
+
+            TranslationResponse arrayTranslationResponse = await _service.TranslateArray(arrayRequest);
+            return Ok(arrayTranslationResponse);
         }
     }
 }

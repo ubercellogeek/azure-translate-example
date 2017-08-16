@@ -5,6 +5,10 @@ using System.IO;
 using System.Net.Http;
 using System.Runtime.Serialization;
 using System.Threading.Tasks;
+using System.Xml.Serialization;
+using System.Text;
+using System.Linq;
+using System.Collections.Generic;
 
 namespace AzureTranslateExample.Services
 {
@@ -12,6 +16,66 @@ namespace AzureTranslateExample.Services
     {
         private DateTime _activeTokenTimestamp = DateTime.MinValue;
         private string _activeToken;
+
+        public async Task<TranslationResponse> TranslateArray(TranslateArrayRequest request)
+        {
+            try
+            {
+                await RefreshBearerToken();
+            }
+            catch (Exception ex)
+            {
+                return new TranslationResponse()
+                {
+                    Success = false,
+                    Message = "Unable to authenticate against the Azure Translation Service."
+                };
+            }
+
+            request.AppId = string.Empty;
+
+            var serializer = new XmlSerializer(typeof(TranslateArrayRequest));
+            MemoryStream ms = new MemoryStream();
+            serializer.Serialize(ms,request);
+            ms.Position = 0;
+            StreamReader reader = new StreamReader(ms);
+            string text = reader.ReadToEnd();
+
+            TranslationResponse response = new TranslationResponse();
+
+            string uriString = "https://api.microsofttranslator.com/V2/Http.svc/TranslateArray";
+            
+            HttpClient httpClient = new HttpClient();
+            var requestMessage = new HttpRequestMessage();
+
+            requestMessage.Headers.Add("Authorization", string.Format("Bearer {0}", _activeToken));
+            requestMessage.Method = HttpMethod.Post;
+            requestMessage.RequestUri = new Uri(uriString);
+            requestMessage.Content = new StringContent(text, Encoding.UTF8, "application/xml");
+            HttpResponseMessage responseMessage = await httpClient.SendAsync(requestMessage);
+
+            if (responseMessage.IsSuccessStatusCode)
+            {
+                string str = await responseMessage.Content.ReadAsStringAsync(); 
+
+                var deserializer = new XmlSerializer(typeof(ArrayOfTranslateArrayResponse));
+
+                MemoryStream dms = new MemoryStream(Encoding.UTF8.GetBytes(str));
+                var dResult = (ArrayOfTranslateArrayResponse)deserializer.Deserialize(dms);
+                response.Success = true;
+                string[] translated = dResult.TranslateArrayResponse.ToList().Select(x=>x.TranslatedText).ToArray();
+                response.Text = string.Join("\n", translated);
+                response.Message = string.Format("{0}", responseMessage.StatusCode);
+            }
+            else
+            {
+                response.Success = false;
+                response.Message = $"Got back a {responseMessage.StatusCode} from the translation service.";
+                response.Text = string.Empty;
+            }
+
+            return response;
+        }
 
         public async Task<TranslationResponse> Translate(TranslationRequest request)
         {
@@ -40,6 +104,56 @@ namespace AzureTranslateExample.Services
             return response;
         }
 
+        public async Task<List<LanguageInformation>> GetSupportedLanguageCodes()
+        {
+
+            List<LanguageInformation> infos = new List<LanguageInformation>();
+
+            try
+            {
+                await RefreshBearerToken();
+            }
+            catch (Exception ex)
+            {
+                return null;
+            }
+
+            ArrayOfstring response = new ArrayOfstring();
+
+            string uriString = "https://api.microsofttranslator.com/V2/Http.svc/GetLanguagesForTranslate";
+            
+            HttpClient httpClient = new HttpClient();
+            var requestMessage = new HttpRequestMessage();
+
+            requestMessage.Headers.Add("Authorization", string.Format("Bearer {0}", _activeToken));
+            requestMessage.Method = HttpMethod.Get;
+            requestMessage.RequestUri = new Uri(uriString);
+
+            HttpResponseMessage responseMessage = await httpClient.SendAsync(requestMessage);
+
+            if (responseMessage.IsSuccessStatusCode)
+            {
+                string str = await responseMessage.Content.ReadAsStringAsync(); 
+
+                var deserializer = new XmlSerializer(typeof(ArrayOfstring));
+
+                MemoryStream dms = new MemoryStream(Encoding.UTF8.GetBytes(str));
+                response = (ArrayOfstring)deserializer.Deserialize(dms);
+
+                foreach(var item in response.@string)
+                {
+                    System.Globalization.CultureInfo c = new System.Globalization.CultureInfo(item);
+                    infos.Add(new LanguageInformation() { IsoCode = item, Name = c.EnglishName });
+                }
+                
+                return infos;
+            }
+            else
+            {
+                return null;
+            }
+        }
+
         private async Task RefreshBearerToken()
         {
             TimeSpan timeSpan = DateTime.UtcNow - _activeTokenTimestamp;
@@ -61,11 +175,12 @@ namespace AzureTranslateExample.Services
             }
             
             _activeToken = await response.Content.ReadAsStringAsync();
+            _activeTokenTimestamp = DateTime.UtcNow;
         }
 
         private async Task<TranslationResponse> TryGetTranslation(TranslationRequest request)
         {
-            string uriString = string.Format("https://api.microsofttranslator.com/v2/http.svc/Translate?text={0}&from=en&to={1}", Uri.EscapeDataString(request.Text), Uri.EscapeDataString(request.ToLanguageISOCode));
+            string uriString = string.Format("https://api.microsofttranslator.com/v2/http.svc/Translate?text={0}&from=en&to={1}", Uri.EscapeDataString(request.Text), Uri.EscapeDataString(request.ToLanguageISOCode.First()));
             
             HttpClient httpClient = new HttpClient();
             var requestMessage = new HttpRequestMessage();
