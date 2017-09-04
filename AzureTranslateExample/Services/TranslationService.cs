@@ -79,32 +79,104 @@ namespace AzureTranslateExample.Services
 
         public async Task<TranslationResponse> Translate(TranslationRequest request)
         {
-            TranslationResponse response = await TryGetTranslation(request);
-            if (response!= null && response.Success) return response;
+            string fromISOCode = request.FromLanguageISOCode;
+            string fromText = request.Text;
+            TranslationResponse arrayTranslationResponse = new TranslationResponse();
 
+            foreach (var item in request.ToLanguageISOCode)
+            {
+                List<string> texts = fromText.Split("\n")?.ToList();
+
+                TranslateArrayRequest arrayRequest = new TranslateArrayRequest
+                {
+                    From = fromISOCode,
+                    To = item,
+                    Texts = texts.ToArray()
+                };
+
+                arrayTranslationResponse = await TranslateArray(arrayRequest);
+                fromText = arrayTranslationResponse.Text;
+                fromISOCode = item;
+
+            }
+
+            return arrayTranslationResponse;
+            //TranslateArrayRequest arrayRequest = new TranslateArrayRequest();
+            //arrayRequest.From = request.FromLanguageISOCode;
+            //arrayRequest.To = request.ToLanguageISOCode.First();
+            //List<string> texts = request.Text.Split("\n")?.ToList();
+
+            //arrayRequest.Texts = texts.ToArray();
+
+            //TranslationResponse arrayTranslationResponse = await _service.TranslateArray(arrayRequest);
+
+            //TranslationResponse response = await TryGetTranslation(request);
+            //if (response!= null && response.Success) return response;
+
+            //try
+            //{
+            //    await RefreshBearerToken();
+            //}
+            //catch (Exception ex)
+            //{
+            //    return new TranslationResponse()
+            //    {
+            //        Success = false,
+            //        Message = "Unable to authenticate against the Azure Translation Service."
+            //    };
+            //}
+
+            //response = await TryGetTranslation(request);
+            //if (response != null && response.Success) return response;
+    
+            //response.Success = false;
+            //string str = string.Format("There was an error in getting the translation from the Azure Translation Service: {0}", (object) response.Message);
+            //response.Message = str;
+            //return response;
+        }
+
+        private async Task<ArrayOfstring> GetSupportedLanguageNames(string payload, string isoCode)
+        {
             try
             {
                 await RefreshBearerToken();
             }
             catch (Exception ex)
             {
-                return new TranslationResponse()
-                {
-                    Success = false,
-                    Message = "Unable to authenticate against the Azure Translation Service."
-                };
+                return null;
             }
 
-            response = await TryGetTranslation(request);
-            if (response != null && response.Success) return response;
-    
-            response.Success = false;
-            string str = string.Format("There was an error in getting the translation from the Azure Translation Service: {0}", (object) response.Message);
-            response.Message = str;
-            return response;
+            ArrayOfstring response = new ArrayOfstring();
+
+            HttpClient httpClient = new HttpClient();
+            var requestMessage = new HttpRequestMessage();
+            var uriString = $"https://api.microsofttranslator.com/V2/Http.svc/GetLanguageNames?locale={isoCode}";
+
+            requestMessage.Headers.Add("Authorization", string.Format("Bearer {0}", _activeToken));
+            requestMessage.Method = HttpMethod.Post;
+            requestMessage.RequestUri = new Uri(uriString);
+            requestMessage.Content = new StringContent(payload, Encoding.UTF8, "application/xml");
+
+            HttpResponseMessage responseMessage = await httpClient.SendAsync(requestMessage);
+
+            if (responseMessage.IsSuccessStatusCode)
+            {
+                string str = await responseMessage.Content.ReadAsStringAsync();
+
+                var deserializer = new XmlSerializer(typeof(ArrayOfstring));
+
+                MemoryStream dms = new MemoryStream(Encoding.UTF8.GetBytes(str));
+                response = (ArrayOfstring)deserializer.Deserialize(dms);
+
+                return response;
+            }
+            else
+            {
+                return null;
+            }
         }
 
-        public async Task<List<LanguageInformation>> GetSupportedLanguageCodes()
+        public async Task<List<LanguageInformation>> GetSupportedLanguageCodes(string isoCode = "en")
         {
 
             List<LanguageInformation> infos = new List<LanguageInformation>();
@@ -140,11 +212,22 @@ namespace AzureTranslateExample.Services
                 MemoryStream dms = new MemoryStream(Encoding.UTF8.GetBytes(str));
                 response = (ArrayOfstring)deserializer.Deserialize(dms);
 
-                foreach(var item in response.@string)
+                // Get the language names
+                ArrayOfstring languageNames = await GetSupportedLanguageNames(str, isoCode);
+
+                if(languageNames?.@string.Length > 0)
                 {
-                    System.Globalization.CultureInfo c = new System.Globalization.CultureInfo(item);
-                    infos.Add(new LanguageInformation() { IsoCode = item, Name = c.EnglishName });
+                    for (int i = 0; i < response.@string.Length; i++)
+                    {
+                        infos.Add(new LanguageInformation() { IsoCode = response.@string[i], Name = languageNames.@string[i] });
+                    }
                 }
+
+                //foreach(var item in response.@string)
+                //{
+                //    System.Globalization.CultureInfo c = new System.Globalization.CultureInfo(item);
+                //    infos.Add(new LanguageInformation() { IsoCode = item, Name = c.EnglishName });
+                //}
                 
                 return infos;
             }

@@ -8,6 +8,6 @@ namespace AzureTranslateExample.Interfaces
   {
       Task<TranslationResponse> Translate(TranslationRequest request);
       Task<TranslationResponse> TranslateArray(TranslateArrayRequest request);
-      Task<List<LanguageInformation>> GetSupportedLanguageCodes();
+      Task<List<LanguageInformation>> GetSupportedLanguageCodes(string isoCode = "en");
   }
 }

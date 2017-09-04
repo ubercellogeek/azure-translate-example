@@ -1,6 +1,5 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html>
-<head>
     <head>
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -9,44 +8,74 @@
         <link rel="stylesheet" href="css/site.css" />
          <title>Microsoft Text Translation Example</title>
     </head>
-<body ng-app="translatorApp" ng-controller="mainCtrl">
-    <div class="container" ng-cloak>
-        <div class="row">
-            <div class="input-field col m3 s12">
-                <select ng-model="language" ng-options="obj.value as obj.name for obj in languages" material-select watch ng-disabled="queryRunning">
-                </select>
-                <label>Source Language</label>
+    <body ng-app="translatorApp" ng-controller="mainCtrl">
+        <div class="container" ng-cloak>
+            <div class="row">
+                <div class="input-field col m3 s12">
+                    <select ng-model="language" ng-options="obj.name for obj in languages" material-select watch ng-disabled="queryRunning">
+                    </select>
+                    <label>Select Source Language</label>
+                </div>
             </div>
-        </div>
-        <div class="row">
-            <div class="input-field col m12 s12">
-                <textarea placeholder="Enter string to translate" id="first_name" class="materialize-textarea" ng-change="textChanged()" ng-model="sourceText" ng-disabled="queryRunning" style="max-height:150px;overflow-y: scroll;"></textarea>
-                <!-- <input placeholder="Enter string to translate" id="first_name" type="text" ng-change="textChanged()" ng-model="sourceText" ng-disabled="queryRunning" ng-keyup="$event.keyCode == 13 ? translate(): null"> -->
+            <div class="row">
+                <div class="input-field col m12 s12">
+                    <textarea placeholder="Enter string to translate" id="first_name" class="materialize-textarea" ng-change="textChanged()" ng-model="sourceText" ng-disabled="queryRunning" style="max-height:150px;overflow-y: scroll;" maxlength="9000"></textarea>
+                </div>
             </div>
-        </div>
-        <div class="row">
-            <div class="col s12">
-                 <button class="btn waves-effect waves-light blue darken-3 col s12" ng-click="translate()" ng-hide="hideButton" name="action" ng-disabled="queryRunning">{{translateBtnText}}</button>
-            </div>
-        </div>
-        <div class="row" ng-hide="hideTranslationResult">
-            <div class="col s12">
-                <div ng-class="cardClass">
-                        <div class="card-content">
-                            <p ng-bind-html="resultText | newlines"></p>
+            <div class="row">
+                <div class="input-field col m3 s3">
+                    <select ng-model="dstLanguage" ng-options="obj.name for obj in languages" material-select watch ng-disabled="queryRunning"></select>
+                    <label>Add Destination Language</label>
+                </div>
+                <div class="col m1 s1 l1">
+                    <a class="btn-floating btn-large waves-effect waves-light blue darken-3" ng-click="addDstLanguage()"><i class="material-icons">add</i></a>
+                </div>
+                <div class="simpleDemo col s8" ng-hide="models.lists.dstLanguages.length === 0">
+                    <div class="row">
+                        <div ng-repeat="(listName, list) in models.lists">
+                            <div class="panel panel-info">
+                                Translation Language Order
+                                <div class="panel-body">
+                                    <ul dnd-list="list">
+                                        <li ng-repeat="item in list"
+                                            dnd-draggable="item"
+                                            dnd-moved="list.splice($index, 1)"
+                                            dnd-effect-allowed="move"
+                                            dnd-selected="models.selected = item"
+                                            ng-class="{'selected': models.selected === item}">
+                                            <span class="badge"><a href="" ng-click="list.splice($index, 1);textChanged()">remove</a></span>{{item.name}}
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
                         </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col s12">
+                     <button class="btn waves-effect waves-light blue darken-3 col s12" ng-click="translate()" ng-hide="hideButton" name="action" ng-disabled="queryRunning">{{translateBtnText}}</button>
+                </div>
+            </div>
+            <div class="row" ng-hide="hideTranslationResult">
+                <div class="col s12">
+                    <div ng-class="cardClass">
+                            <div class="card-content">
+                                <p ng-bind-html="resultText | newlines"></p>
+                            </div>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <!--SCRIPTS-->
-    <script type="text/javascript" src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
-    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.8/angular.min.js"></script>
-    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.8/angular-animate.min.js"></script>
-    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.8/angular-sanitize.js"></script>
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.98.0/js/materialize.min.js"></script>
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/angular-materialize/0.2.2/angular-materialize.min.js"></script>
-    <script type="text/javascript" src="js/app.js"></script>
-</body>
+        <!--SCRIPTS-->
+        <script type="text/javascript" src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
+        <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.8/angular.min.js"></script>
+        <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.8/angular-animate.min.js"></script>
+        <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.8/angular-sanitize.js"></script>
+        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.98.0/js/materialize.min.js"></script>
+        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/angular-materialize/0.2.2/angular-materialize.min.js"></script>
+        <script type="text/javascript" src="js/angular-drag-and-drop-lists.js"></script>
+        <script type="text/javascript" src="js/app.js"></script>
+    </body>
 </html>
