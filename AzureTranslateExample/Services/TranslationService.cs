@@ -101,38 +101,6 @@ namespace AzureTranslateExample.Services
             }
 
             return arrayTranslationResponse;
-            //TranslateArrayRequest arrayRequest = new TranslateArrayRequest();
-            //arrayRequest.From = request.FromLanguageISOCode;
-            //arrayRequest.To = request.ToLanguageISOCode.First();
-            //List<string> texts = request.Text.Split("\n")?.ToList();
-
-            //arrayRequest.Texts = texts.ToArray();
-
-            //TranslationResponse arrayTranslationResponse = await _service.TranslateArray(arrayRequest);
-
-            //TranslationResponse response = await TryGetTranslation(request);
-            //if (response!= null && response.Success) return response;
-
-            //try
-            //{
-            //    await RefreshBearerToken();
-            //}
-            //catch (Exception ex)
-            //{
-            //    return new TranslationResponse()
-            //    {
-            //        Success = false,
-            //        Message = "Unable to authenticate against the Azure Translation Service."
-            //    };
-            //}
-
-            //response = await TryGetTranslation(request);
-            //if (response != null && response.Success) return response;
-    
-            //response.Success = false;
-            //string str = string.Format("There was an error in getting the translation from the Azure Translation Service: {0}", (object) response.Message);
-            //response.Message = str;
-            //return response;
         }
 
         private async Task<ArrayOfstring> GetSupportedLanguageNames(string payload, string isoCode)
@@ -223,12 +191,6 @@ namespace AzureTranslateExample.Services
                     }
                 }
 
-                //foreach(var item in response.@string)
-                //{
-                //    System.Globalization.CultureInfo c = new System.Globalization.CultureInfo(item);
-                //    infos.Add(new LanguageInformation() { IsoCode = item, Name = c.EnglishName });
-                //}
-                
                 return infos;
             }
             else
@@ -246,7 +208,7 @@ namespace AzureTranslateExample.Services
             HttpRequestMessage request = new HttpRequestMessage();
 
             request.Headers.Add("Accept", "application/jwt");
-            request.Headers.Add("Ocp-Apim-Subscription-Key", "9b4ceca92a814d46a9f6849a478b314f");
+            request.Headers.Add("Ocp-Apim-Subscription-Key", "[your subscription key here....NOTE THIS SHOULD NOT BE HARDCODED, SHOULD BE IN CONFIG");
             request.Method = HttpMethod.Post;
             request.RequestUri = new Uri("https://api.cognitive.microsoft.com/sts/v1.0/issueToken");
 
